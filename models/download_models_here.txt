@@ -1,0 +1,6 @@
+Generate:-
+https://github.com/Ribin-Baby/brats_mri_generative_diffusion_monai/releases/download/Monai-models/model.pt
+https://github.com/Ribin-Baby/brats_mri_generative_diffusion_monai/releases/download/Monai-models/model_autoencoder.pt
+
+Segment:-
+https://github.com/Ribin-Baby/brats_mri_generative_diffusion_monai/releases/download/Monai-models/best_metric_model.pth
