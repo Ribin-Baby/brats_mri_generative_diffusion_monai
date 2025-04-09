@@ -1,0 +1,109 @@
+{
+    "imports": [
+        "$import torch",
+        "$from datetime import datetime",
+        "$from pathlib import Path"
+    ],
+    "bundle_root": ".",
+    "model_dir": "$@bundle_root + '/models'",
+    "output_dir": "$@bundle_root + '/output'",
+    "create_output_dir": "$Path(@output_dir).mkdir(exist_ok=True)",
+    "device": "$torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')",
+    "output_postfix": "$datetime.now().strftime('sample_%Y%m%d_%H%M%S')",
+    "spatial_dims": 3,
+    "image_channels": 1,
+    "latent_channels": 4,
+    "latent_shape": [
+        4,
+        64,
+        64,
+        64
+    ],
+    "autoencoder_def": {
+        "_target_": "monai.networks.nets.autoencoderkl.AutoencoderKL",
+        "spatial_dims": "@spatial_dims",
+        "in_channels": "@image_channels",
+        "out_channels": "@image_channels",
+        "latent_channels": "@latent_channels",
+        "channels": [
+            64,
+            128,
+            256
+        ],
+        "num_res_blocks": [
+            2,
+            2,
+            2
+        ],
+        "norm_num_groups": 32,
+        "norm_eps": 1e-06,
+        "attention_levels": [
+            false,
+            false,
+            false
+        ],
+        "with_encoder_nonlocal_attn": false,
+        "with_decoder_nonlocal_attn": false,
+        "include_fc": false
+    },
+    "network_def": {
+        "_target_": "monai.networks.nets.diffusion_model_unet.DiffusionModelUNet",
+        "spatial_dims": "@spatial_dims",
+        "in_channels": "@latent_channels",
+        "out_channels": "@latent_channels",
+        "channels": [
+            64,
+            128,
+            256,
+            512
+        ],
+        "attention_levels": [
+            false,
+            false,
+            true,
+            true
+        ],
+        "num_head_channels": [
+            0,
+            0,
+            32,
+            32
+        ],
+        "num_res_blocks": 2,
+        "include_fc": false,
+        "use_combined_linear": false
+    },
+    "load_autoencoder_path": "$@bundle_root + '/models/model_autoencoder.pt'",
+    "load_autoencoder": "$@autoencoder_def.load_old_state_dict(torch.load(@load_autoencoder_path))",
+    "autoencoder": "$@autoencoder_def.to(@device)",
+    "load_diffusion_path": "$@model_dir + '/model.pt'",
+    "load_diffusion": "$@network_def.load_old_state_dict(torch.load(@load_diffusion_path))",
+    "diffusion": "$@network_def.to(@device)",
+    "noise_scheduler": {
+        "_target_": "monai.networks.schedulers.ddim.DDIMScheduler",
+        "_requires_": [
+            "@load_diffusion",
+            "@load_autoencoder"
+        ],
+        "num_train_timesteps": 1000,
+        "beta_start": 0.0015,
+        "beta_end": 0.0195,
+        "schedule": "scaled_linear_beta",
+        "clip_sample": false
+    },
+    "noise": "$torch.randn([1]+@latent_shape).to(@device)",
+    "set_timesteps": "$@noise_scheduler.set_timesteps(num_inference_steps=50)",
+    "inferer": {
+        "_target_": "scripts.ldm_sampler.LDMSampler",
+        "_requires_": "@set_timesteps"
+    },
+    "saver": {
+        "_target_": "SaveImage",
+        "_requires_": "@create_output_dir",
+        "output_dir": "@output_dir",
+        "output_postfix": "@output_postfix"
+    },
+    "run": [
+        "$@inferer.run(@noise, @autoencoder, @diffusion, @noise_scheduler, @saver)"
+    ]
+}
