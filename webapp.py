@@ -405,7 +405,7 @@ def main():
     # Footer
     st.markdown("""
         <hr style="border: 1px solid #ddd;">
-        <p style="text-align: center; color: #888;">Powered by Streamlit & xAI</p>
+        <p style="text-align: center; color: #888;">Powered by Streamlit & MONAI</p>
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
