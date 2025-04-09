@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create /models directory if it doesn't exist
-MODEL_DIR="/models"
+MODEL_DIR="models/"
 mkdir -p "$MODEL_DIR"
 
 # Define URLs
