@@ -15,7 +15,7 @@ URLS=(
 echo "Downloading files into $MODEL_DIR ..."
 for url in "${URLS[@]}"; do
     echo "Downloading: $url"
-    wget -q --show-progress -P "$MODEL_DIR" "$url"
+    wget -P "$MODEL_DIR" "$url"
 done
 
 echo "Download completed!"
