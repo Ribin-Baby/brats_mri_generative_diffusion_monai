@@ -2,7 +2,7 @@
 
 # Create /models directory if it doesn't exist
 MODEL_DIR="models/"
-mkdir -p "$MODEL_DIR"
+#mkdir -p "$MODEL_DIR"
 
 # Define URLs
 URLS=(
